@@ -5,12 +5,12 @@ from block import Block
 Represents a Sudoku puzzle and contains methods to handle solving it
 """
 class GameController():
-    debugMode = False
+    debugMode = True
     
     NAME = "Sudoku Solver"  # Window title
     BLOCK_SIZE = 50         # Block size in pixels
     LINE_PX = 4             # Line width in pixels
-    FRAME_RATE = 5
+    FRAME_RATE = 60
     
     ACTUAL_BLOCK_SIZE = BLOCK_SIZE - LINE_PX - 2*LINE_PX/9 # The actual size of the white area
     SCREEN_SIZE = 9*BLOCK_SIZE + 2*LINE_PX
@@ -19,7 +19,7 @@ class GameController():
     BLACK = (0,0,0)
     WHITE = (255,255,255)
     GREEN = (0,255,0)
-    RED = (255,0,0)
+    BLUE = (0,0,255)
     
     """
     Sets up a puzzle with all blocks empty and divides it into rows, columns, and sections
@@ -287,7 +287,7 @@ class GameController():
                     # Make sure we only have one possible value if we aren't yet brute forcing
                     # Otherwise we move on to the next block
                     else:
-                        block.setNum(possible if self.findPossibleInRange(rcs, possible + 1) == -1 else -1, GameController.RED, False)
+                        block.setNum(possible if self.findPossibleInRange(rcs, possible + 1) == -1 else -1, GameController.BLUE, False)
                         if block.getNum() != '':
                             return True
                 # If no possible value was found and we are brute forcing
