@@ -6,33 +6,37 @@ from board import Board
 
 SIZE = (SCREEN_SIZE, SCREEN_SIZE) #screen size in pixels
  
-pygame.init()
+pygame.init() #initialize the pygame library
  
-screen = pygame.display.set_mode(SIZE)
+screen = pygame.display.set_mode(SIZE) #initialize a window
  
-pygame.display.set_caption("Sudoku Solver")
+pygame.display.set_caption("Sudoku Solver") #set window title
  
 clock = pygame.time.Clock()
 
+"""
+Creates a blank Sudoku puzzle and lets the user set up initial values
+Solves the puzzle after the Enter key is pressed
+"""
 def main():
-    done = False   
+    done = False
     
-    board = Board()
+    board = Board() #initialize the puzzle surface
     
     computing = False
     
     while not done:
-    # --- Main event loop
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT: #exit if the window is closed
                 done = True
             elif event.type == pygame.MOUSEBUTTONUP and not computing:
-                board.click(pygame.mouse.get_pos())
+                board.click(pygame.mouse.get_pos()) #select a block on click
                 
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+                if event.key == pygame.K_ESCAPE: #the user can also quit with the escape key
                     done = True               
                 elif not computing:
+                    #set the initial puzzle numbers
                     if event.key == pygame.K_1:
                         board.enterNum(1)
                         
@@ -60,20 +64,22 @@ def main():
                     elif event.key == pygame.K_9:
                         board.enterNum(9)
                     
+                    #clear the selected block
                     elif event.key == pygame.K_BACKSPACE:
                         board.deleteSelected()
-                        
+                    
+                    #solve the puzzle 
                     elif event.key == pygame.K_RETURN:
                         computing = True
 
         if computing:
-            solved = board.checkSolved()
+            solved = board.checkSolved() #check if the board has been solved
             
-            computing = False if solved else board.solve()
+            computing = False if solved else board.solve() #stop solving if the board is solved otherwise solve another block
                 
         screen.fill(BLACK)
         
-        board.spriteList.draw(screen)
+        board.spriteList.draw(screen) #draw the board to the screen
 
         pygame.display.flip()
         
