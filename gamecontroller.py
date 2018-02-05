@@ -292,19 +292,22 @@ class GameController():
                             return True
                 # If no possible value was found and we are brute forcing
                 elif self.solvedObvious:
-                        # Get last speculative
+                        # Get last speculative block
                         last_spec_block = self.findLastSpeculativeBlock()
                         while (last_spec_block != -1):
                             rcs = self.getIndicesOfBlock(last_spec_block)
-                            # If a value greater than num and less than 9 is possible
+                            
+                            # If a value greater than num and less than or equal to 9 is possible
                             possible = self.findPossibleInRange(rcs, last_spec_block.getNum() + 1)
+                            
                             # Set the block speculatively to that value
                             if possible != -1:
                                 last_spec_block.setNum(possible, GameController.GREEN, True)
                                 return True
+                            # If no value was possible we reset the block and move backwards
                             else:
                                 last_spec_block.removeNum()
-                            # Get last speculative
+                            # Get last speculative block
                             last_spec_block = self.findLastSpeculativeBlock()
                 
         # If we have not brute forced anything yet we will still return true
