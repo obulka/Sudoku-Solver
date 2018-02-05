@@ -47,7 +47,7 @@ class GameController():
         
         self.selected_block = []        # Contains the block that is currently selected
         
-        # Make rows
+        # Make rows and create blocks, setting their position as they are created
         tmp = []
         xNext = GameController.LINE_PX/2
         yNext = GameController.LINE_PX/2
@@ -218,12 +218,11 @@ class GameController():
             self.selected_block[0].removeNum
     
     """
-    
+    Removes the number associated with every block
     """
     def clearBoard(self):
-        for row in self.rows:
-            for block in row:
-                block.removeNum()
+        for block in self.spriteList:
+            block.removeNum()
         
     """
     Prints all the rows for debugging
