@@ -315,7 +315,7 @@ class GameController():
     
     """
     Finds the last block that was speculatively set
-    @return: the last block in the puzzle that is speculatively assigned as found in a search by row and -1 if none are found
+    @return: the last block in the puzzle that is speculatively assigned as found in a search by row, and -1 if none are found
     """
     def findLastSpeculativeBlock(self):
         for i in range(len(self.blocks)-1,-1,-1):
@@ -329,7 +329,7 @@ class GameController():
     @param rcs: A list of the form [row,column,section] that specifies the location we are solving
     @param start: the first value of the range we want to search
     @return: the lowest possible value that could currently fit in the position specified by rcs, and is in the range(start,10) and -1 if none fit
-    @requires: 1 <= rcs[0], rcs[1], rcs[2] <= 9
+    @requires: 0 <= rcs[0], rcs[1], rcs[2] <= 8
     """
     def findPossibleInRange(self, rcs, start):
         if start >= 1 and start <= 9:
