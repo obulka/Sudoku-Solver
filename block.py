@@ -31,14 +31,14 @@ class Block(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
     
     """
-    Change the colour of the block to green if it is selected
+    Changes the background colour to selected_colour
     """
     def select(self):
         self.colour = self.selected_colour
         self.update()
     
     """
-    Returns the colour to white when deselecting
+    Changes the background colour to unselected_colour
     """    
     def deselect(self):
         self.colour = self.unselected_colour

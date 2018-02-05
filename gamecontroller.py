@@ -228,7 +228,7 @@ class GameController():
         
     """
     Checks whether or not the board is solved
-    @returns True if solved, False otherwise
+    @return: True if solved, False otherwise
     """
     def checkSolved(self):
         for row in self.rows:
