@@ -2,6 +2,7 @@ import pygame
 from block import Block
 from consts import BLOCK_SIZE, LINE_PX, BLACK, RED
 
+"""Represents a Sudoku puzzle and contains methods to handle solving it"""
 class Board():
     """Sets up a puzzle with all blocks empty and divides it into rows, columns, and sections"""
     def __init__(self):
