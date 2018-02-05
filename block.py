@@ -17,6 +17,7 @@ class Block(pygame.sprite.Sprite):
         
         #setable properties
         self.number = ''
+        self.speculative = False
         
         self.unselected_colour = unselectedColour
         self.selected_colour = selectedColour
@@ -47,13 +48,14 @@ class Block(pygame.sprite.Sprite):
     Set the number to be displayed on a block
     @param number: the number to display
     @param colour: the font colour used to print the number
+    @param speculative: Pass True if setting speculatively, False if you are sure
     """    
-    def setNum(self, number, colour):
+    def setNum(self, number, colour, speculative):
         if number >= 1 and number <= 9:
             self.number = number
             self.font_colour = colour
-        
-        self.update()
+            self.speculative = speculative
+            self.update()
     
     """
     @returns the number that is associated with the block
@@ -62,10 +64,11 @@ class Block(pygame.sprite.Sprite):
         return self.number
     
     """
-    Delete the number on a block
+    Delete the number on a block and set speculative back to False
     """
     def removeNum(self):
         self.number = ''
+        self.speculative = False
         self.update()
     
     """

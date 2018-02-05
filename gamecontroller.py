@@ -5,7 +5,7 @@ from block import Block
 Represents a Sudoku puzzle and contains methods to handle solving it
 """
 class GameController():
-    debugMode = True
+    debugMode = False
     
     NAME = "Sudoku Solver"  # Window title
     BLOCK_SIZE = 50         # Block size in pixels
@@ -36,14 +36,13 @@ class GameController():
         self.done = False
         self.computing = False
         self.solvedObvious = False      # Used by the solving algorithm to track whether or not the obvious solutions have been filled
-        
-        self.solve_head = [0,0]         # Tracks where the brute force algorithm currently is
-        
+                
         self.spriteList = pygame.sprite.Group()
         
         self.rows = []                  # A list of every row
         self.columns = []               # A list of every column
         self.sections = []              # A list of every section
+        self.blocks = []
         
         self.selected_block = []        # Contains the block that is currently selected
         
@@ -62,6 +61,7 @@ class GameController():
                 xNext = xNext + GameController.BLOCK_SIZE + xExtraSpace
                 
                 self.spriteList.add(block)
+                self.blocks.append(block)
                 tmp.append(block)
                 
             yExtraSpace = GameController.LINE_PX if i == 2 or i == 5 else 0
@@ -166,6 +166,8 @@ class GameController():
                     
                     # Solve the puzzle 
                     elif event.key == pygame.K_RETURN:
+                        if len(self.selected_block) > 0:
+                            self.selected_block[0].deselect()
                         self.computing = True   
     
     """
@@ -208,7 +210,7 @@ class GameController():
     """
     def enterNum(self, num):
         if len(self.selected_block) > 0:
-            self.selected_block[0].setNum(num, GameController.BLACK)
+            self.selected_block[0].setNum(num, GameController.BLACK, False)
     
     """
     Removes the number associated with the selected block if a block is selected
@@ -225,33 +227,6 @@ class GameController():
             block.removeNum()
         
     """
-    Prints all the rows for debugging
-    """
-    def printRows(self):
-        for row in self.rows:
-            for block in row:
-                print str(block.getNum()),
-            print "\n"
-    
-    """
-    Prints all the columns for debugging
-    """        
-    def printCols(self):      
-        for col in self.columns:
-            for block in col:
-                print str(block.getNum()),
-            print "\n"
-    
-    """
-    Prints all the sections for debugging
-    """
-    def printSecs(self):        
-        for sec in self.sections:
-            for block in sec:
-                print str(block.getNum()),
-            print "\n"
-    
-    """
     Checks whether or not the board is solved
     @returns True if solved, False otherwise
     """
@@ -263,17 +238,17 @@ class GameController():
         return True
     
     """
-    Finds the index of the section that contains block
+    Finds the [row,column,section] that contains a block
     @param block: the block whose section we want to find
-    @return: An integer index of the section that contains block and -1 if it is not found
+    @return: A list of indices that contains the block in the form [row,column,section] and [] if it is not found
     """
-    def getSection(self, block):
-        for s in range(9):
-            for check_block in self.sections[s]:
-                if check_block is block:
-                    return s
-        return -1
-    
+    def getIndicesOfBlock(self, block):
+        for i in range(9):
+            for j in range(9):
+                if self.rows[i][j] is block:
+                    return [i, j, j/3 + (i/3)*3]  
+        return []        
+             
     """
     Checks whether or not a block in check_list has a number of check_num
     @param check_list: the list of blocks to check
@@ -288,49 +263,86 @@ class GameController():
                 
     """
     Solves one block on every call and displays it to the screen
-    @return: True if a block was solved, False if no solution could be found
+    @return: True if a block was solved or if the solve method has changed, False if no solution could be found
+             If False is returned there is no solution to be found, stop looking
     """        
-    def solve(self):
-        if len(self.selected_block) > 0:
-            self.selected_block[0].deselect()
-        
+    def solve(self):        
         # First we fill in blocks that can only take one possible value
-        if not self.solvedObvious:
-            # Iterate through the entire board
-            for row in range(9):
-                for col in range(9):
-                    block = self.rows[row][col]
-                    num = block.getNum()
-                    
-                    # If we find an empty block
-                    if num == '':
-                        possible = 0
-                        sec = self.getSection(block)
-                        # Check all possible numbers
-                        for check in range(1,10):                        
-                            # Check that the number isn't in the same row, column or section
-                            if (
-                                self.checkNoBlockInListHasNum(self.rows[row], check) and
-                                self.checkNoBlockInListHasNum(self.columns[col], check) and
-                                self.checkNoBlockInListHasNum(self.sections[sec], check)
-                                ):
-                                # Make sure we only have one possible value, otherwise we move on to the next block
-                                if possible != 0:
-                                    possible = 0
-                                    break
-                                else:
-                                    possible = check
-                        # If only one value was found, we use it and return, otherwise we continue
-                        if possible != 0:
-                            block.setNum(possible, GameController.RED)
+        # Then we will use a brute force algorithm to solve the rest
+
+        # Iterate through the entire board
+        for block in self.blocks:                               
+            num = block.getNum()
+            
+            # If we find an empty block
+            if num == '':
+                rcs = self.getIndicesOfBlock(block)
+                possible = self.findPossibleInRange(rcs, 1)
+
+                if possible != -1:
+                    # Use the first possible value if we are brute forcing
+                    if self.solvedObvious:
+                        block.setNum(possible, GameController.GREEN, True)
+                        return True
+                    # Make sure we only have one possible value if we aren't yet brute forcing
+                    # Otherwise we move on to the next block
+                    else:
+                        block.setNum(possible if self.findPossibleInRange(rcs, possible + 1) == -1 else -1, GameController.RED, False)
+                        if block.getNum() != '':
                             return True
+                # If no possible value was found and we are brute forcing
+                elif self.solvedObvious:
+                        # Get last speculative
+                        last_spec_block = self.findLastSpeculativeBlock()
+                        while (last_spec_block != -1):
+                            rcs = self.getIndicesOfBlock(last_spec_block)
+                            # If a value greater than num and less than 9 is possible
+                            possible = self.findPossibleInRange(rcs, last_spec_block.getNum() + 1)
+                            # Set the block speculatively to that value
+                            if possible != -1:
+                                last_spec_block.setNum(possible, GameController.GREEN, True)
+                                return True
+                            else:
+                                last_spec_block.removeNum()
+                            # Get last speculative
+                            last_spec_block = self.findLastSpeculativeBlock()
+                
+        # If we have not brute forced anything yet we will still return true
+        if not self.solvedObvious:
             self.solvedObvious = True
-        
-        # Brute force the rest of the solution
-        for guess in range(9):
-            pass
-        
+            return True
         return False
+    
+    """
+    Finds the last block that was speculatively set
+    @return: the last block in the puzzle that is speculatively assigned as found in a search by row and -1 if none are found
+    """
+    def findLastSpeculativeBlock(self):
+        for i in range(len(self.blocks)-1,-1,-1):
+                block = self.blocks[i]
+                if block.speculative:
+                    return block
+        return -1
+    
+    """
+    Finds the lowest value that is between start and the max value (9) that could be a solution at the location specified by rcs
+    @param rcs: A list of the form [row,column,section] that specifies the location we are solving
+    @param start: the first value of the range we want to search
+    @return: the lowest possible value that could currently fit in the position specified by rcs, and is in the range(start,10) and -1 if none fit
+    @requires: 1 <= rcs[0], rcs[1], rcs[2] <= 9
+    """
+    def findPossibleInRange(self, rcs, start):
+        if start >= 1 and start <= 9:
+            # Check all possible numbers sets possible to a possible value if found
+            for check in range(start,10):                        
+                # Check that the number isn't in the same row, column or section
+                if (
+                    self.checkNoBlockInListHasNum(self.rows[rcs[0]], check) and    #not in row
+                    self.checkNoBlockInListHasNum(self.columns[rcs[1]], check) and #not in col
+                    self.checkNoBlockInListHasNum(self.sections[rcs[2]], check)    #not in sec
+                    ):
+                    return check
+        return -1
     
     """
     Loads a test puzzle into the board for debuggung
@@ -348,7 +360,7 @@ class GameController():
         
         for row in range(9):
             for block in range(9):
-                self.rows[row][block].setNum(test[row][block], GameController.BLACK)
+                self.rows[row][block].setNum(test[row][block], GameController.BLACK, False)
         
         
         
