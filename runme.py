@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import pygame
-from consts import *
+from consts import SCREEN_SIZE, FRAME_RATE, BLACK
 from board import Board
 
 

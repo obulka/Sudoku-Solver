@@ -1,5 +1,5 @@
 import pygame
-from consts import *          
+from consts import BLOCK_SIZE, LINE_PX, WHITE, BLACK, GREEN          
 
 """Each square of the sudoku puzzle is represented by a Block"""
 class Block(pygame.sprite.Sprite):

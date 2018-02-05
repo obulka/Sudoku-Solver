@@ -1,6 +1,6 @@
 import pygame
 from block import Block
-from consts import *
+from consts import BLOCK_SIZE, LINE_PX, BLACK, RED
 
 class Board():
     """Sets up a puzzle with all blocks empty and divides it into rows, columns, and sections"""
@@ -53,7 +53,7 @@ class Board():
                 self.sections.append(tmp)
                 tmp = []
                 
-        self.test() #for debugging
+        #self.test() #for debugging
                 
     """
     If the user clicked on a block, this method selects the block
